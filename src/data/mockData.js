@@ -1,118 +1,46 @@
-// ================= TASKS =================
-export const INITIAL_TASKS = [
-  {
-    id: "task-1",
-    type: "Medical Emergency",
-    priority: "critical",
-    location: "Hall A",
-    requiredSkill: "Medical",
-    createdAt: new Date(Date.now() - 120000).toISOString(),
-    status: "pending",
-    acceptedBy: [],
-    interestedVolunteers: [],
-    declinedBy: [],
-    volunteersNeeded: 1,
-  },
-  {
-    id: "task-2",
-    type: "Flood Evacuation",
-    priority: "critical",
-    location: "Gate B",
-    requiredSkill: "Rescue",
-    createdAt: new Date(Date.now() - 300000).toISOString(),
-    status: "pending",
-    acceptedBy: [],
-    interestedVolunteers: [],
-    declinedBy: [],
-    volunteersNeeded: 1,
-  },
-  {
-    id: "task-3",
-    type: "Supply Distribution",
-    priority: "high",
-    location: "Hall A",
-    requiredSkill: "Logistics",
-    createdAt: new Date(Date.now() - 720000).toISOString(),
-    status: "pending",
-    acceptedBy: [],
-    interestedVolunteers: [],
-    declinedBy: [],
-    volunteersNeeded: 1,
-  },
-];
+// ================= TASK PRIORITIES =================
+export const PRIORITY_LEVELS = ["low", "medium", "high", "critical"];
 
-
-// ================= VOLUNTEERS =================
-export const INITIAL_VOLUNTEERS = [
-  {
-    id: "vol-1",
-    name: "Priya Krishnan",
-    email: "priya@alerto.com",
-    password: "priya123",
-    role: "volunteer",
-    available: true,
-    dnd: false,
-    location: "Hall A",
-    skills: ["Medical", "First Aid"],
-    tasksCompleted: 3,
-  },
-  {
-    id: "vol-2",
-    name: "Rahul Menon",
-    email: "rahul@alerto.com",
-    password: "rahul123",
-    role: "volunteer",
-    available: true,
-    dnd: false,
-    location: "Gate B",
-    skills: ["Rescue", "Crowd Control"],
-    tasksCompleted: 5,
-  },
-  {
-    id: "vol-3",
-    name: "Arjun Nair",
-    email: "arjun@alerto.com",
-    password: "arjun123",
-    role: "volunteer",
-    available: true,
-    dnd: false,
-    location: "Hall A",
-    skills: ["Logistics", "Support"],
-    tasksCompleted: 2,
-  },
-];
-
-
-// ================= ORGANIZER =================
-export const ORGANIZER_ACCOUNT = {
-  id: "org-1",
-  name: "Alex Morgan",
-  email: "admin@alerto.com",
-  password: "admin123",
-  role: "organizer",
-};
-
-
-// ================= TASK TYPES =================
+// ================= SKILLS / CATEGORIES =================
 export const TASK_TYPES = [
-  "Medical Emergency",
-  "Evacuation Support",
-  "Supply Distribution",
-  "Shelter Setup",
-  "Food Distribution",
-  "Water Supply",
-  "Crowd Control",
+  "Technical Support",
+  "Hospitality",
+  "Stage Crew",
+  "Logistics",
+  "Media & Design"
 ];
-
 
 // ================= LOCATIONS =================
 export const LOCATIONS = [
-  "Hall A",
-  "Gate B",
-  "Main Stage",
-  "Registration Desk",
+  "Main Auditorium",
+  "Lobby Area",
+  "Hackathon Hall",
+  "Dining Pavilion",
+  "Sponsor Exhibition",
+  "Speaker Lounge"
 ];
 
+// ================= INITIAL VOLUNTEERS =================
+// Stats start at zero — XP/achievements/tasks are earned purely from real events.
+export const INITIAL_VOLUNTEERS = [];
 
-// ================= PRIORITY LEVELS =================
-export const PRIORITY_LEVELS = ["low", "medium", "high", "critical"];
+// ================= ORGANIZER ACCOUNT =================
+export const ORGANIZER_ACCOUNT = {
+  id: "org-1",
+  name: "Alex Morgan",
+  email: "admin@crewsync.com",
+  password: "admin123",
+  role: "organizer",
+  roleRequest: "organizer",
+  approvalStatus: "approved"
+};
+
+// ================= ACTIVE TASKS =================
+// Empty by default. Tasks are created exclusively by the organizer at runtime.
+// No pre-seeded dispatches — everything is event-driven.
+export const INITIAL_ACTIVE_TASKS = [];
+
+// ================= TASK HISTORY =================
+// Empty by default. History entries are generated only from real completed/
+// cancelled/expired events at runtime.
+export const INITIAL_TASK_HISTORY = [];
