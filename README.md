@@ -1,51 +1,69 @@
-# 🚨 Alerto - Volunteer Dispatch System
+# ⚡ CrewSync — Event Crew Operating System
 
-Alerto is a high-performance, real-time civic intelligence and dispatch management platform designed to cleanly bridge the gap between Crisis Organizers and on-the-ground Volunteers. 
+CrewSync is a high-performance, real-time event operations and crew dispatch management platform designed to cleanly bridge the gap between Event Organizers/Coordinators and on-the-ground volunteer crew members.
 
-Built beautifully with pure Vanilla HTML/CSS inside a modern React architecture, Alerto proves that you don't need heavy CSS frameworks like Tailwind to build dynamic, responsive, and gorgeous web platforms.
+Built with a custom React architecture and a pure, sleek monochrome aesthetic powered entirely by Vanilla CSS, CrewSync provides premium usability across mobile, tablet, and desktop viewports.
 
-## ✨ Features
-- **Multi-Role Dashboards:** Securely isolated command centers tailored specifically for Organizers and Volunteers.
-- **Dynamic Task Routing:** A scalable 1-to-many task architecture. Organizers set the volume of volunteers needed; the system automatically thresholds availability.
-- **"I'm Interested" Mechanic:** Once tasks hit capacity, volunteers are intelligently redirected to express interest, avoiding rigid lockouts.
-- **Pure Stateful Execution:** Heavily optimized local application state using Context APIs running at lightning speed with `localStorage` persistence.
-- **Live Leaderboards:** Algorithmic ranking feeds that never unsync from live task completion datasets.
-- **Automated Garbage Collection:** Complete pruning of dead notifications and alerts seamlessly tied to the lifecycle hook of task deletion.
+---
 
-## 🚀 Quick Start
-To get a local copy up and running, follow these simple steps.
+## 🚀 Key Features
+
+- **Multi-Role Workspaces:** Securely separated dashboard viewports tailored for organizers (event grid command centers) and volunteers (task dispatches).
+- **Premium Gamification & Progression:** Dynamic XP tracking, leveling systems (with animated Level Up overlays), task completion streaks, and a visual badge cabinet on volunteer profiles.
+- **Dynamic Task Dispatch & Capacity Thresholding:** High-granularity task cards supporting operational check-ins, priorities (low, medium, high, critical), categories (Stage Crew, Hospitality, Technical Support), and standby queue support.
+- **WhatsApp-Style Chat Workspace:** Responsive sliding-panel mobile chat, tablet split-view, and desktop 3-panel message hub with inline quick replies, unread counters, and profile contextual sidebars.
+- **Credential Approvals Portal:** Dynamic organizer control page to approve incoming volunteer profiles, update rankings, and manage the event network.
+- **Real-Time Notification Drawer:** System-wide operations alerts and direct message badges.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+- **UI Framework:** [React.js](https://react.dev/) (bundled with Vite)
+- **Styling Engine:** Vanilla CSS custom-themed design system (supports seamless Dark/Light mode toggle via HSL variables)
+- **Icons Library:** [Lucide React](https://lucide.dev/)
+- **Popups/Toasts:** [React Hot Toast](https://reacthottoast.com/)
+- **State Management:** Bounded React Context state engine featuring reactive local storage sync and auto-updating progression math.
+
+---
+
+## 🏁 Quick Start
 
 ### Prerequisites
-Make sure you have Node Package Manager (NPM) installed.
+Ensure you have **Node.js** and **npm** installed.
 ```sh
 npm install npm@latest -g
 ```
 
-### Installation
-1. Clone the repository:
+### Installation & Launch
+1. **Clone the repository:**
    ```sh
-   git clone https://github.com/AbhijithJ1/alerto.git
+   git clone https://github.com/AbhijithJ1/CrewSync.git
    ```
-2. Navigate to the project directory:
+2. **Navigate to the project directory:**
    ```sh
-   cd alerto
+   cd CrewSync
    ```
-3. Install the dependencies:
+3. **Install dependencies:**
    ```sh
    npm install
    ```
-4. Start the Vite development server:
+4. **Boot up Vite development server:**
    ```sh
    npm run dev
    ```
 
-## 🛠️ Stack & Technologies
-- **React.js (Vite)** - Foundational UI framework.
-- **Vanilla CSS** - All theming, structural logic, and CSS variables done ground-up.
-- **React Hot Toast** - For beautiful, lightweight popup notifications.
+### Default Credentials
+To access the organizer's command center:
+* **Email:** `admin@crewsync.com`
+* **Password:** `admin123`
 
-## 🏗️ Architecture Note
-*Disclaimer: Alerto fundamentally operates entirely within the browser via `localStorage`. The application will behave perfectly as a portfolio or simulation. To deploy Alerto into a live environment where separated remote machines can pass tasks seamlessly to each other, simply strap the `AppContext.jsx` action dispatches to a live backend hook system like Firebase or PostgreSQL/WebSockets.*
+---
+
+## 🏗️ Architecture & Simulation Notice
+CrewSync operates entirely inside the browser sandboxed environment using React state and `localStorage` persistence. The application is completely functional for portfolios, live simulations, and local testing. To deploy it in a remote production environment, replace the dispatches in `AppContext.jsx` with your database hooks or WebSockets (e.g., Firebase, Supabase, or PostgreSQL).
+
+---
 
 ## 📜 License
 Distributed under the MIT License. See `LICENSE` for more information.
