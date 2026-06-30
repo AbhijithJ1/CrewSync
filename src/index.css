@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    DESIGN TOKENS Ã¢â‚¬â€ Pure Monochrome
@@ -8400,17 +8400,19 @@ body, html { overflow-x: hidden; max-width: 100vw; }
 /* Mobile: subtract bottom nav height */
 @media (max-width: 768px) {
   .page-content.page-content-chat {
-    height: calc(100dvh - var(--header-h, 56px) - var(--nav-h-mobile, 56px)) !important;
+    height: calc(100dvh - var(--header-h, 56px) - var(--nav-h-mobile, 60px)) !important;
   }
 }
 
 
 /* ===== CHAT PAGE POLISH — messages bottom-aligned + visual upgrade ===== */
 
-/* Messages should stack from BOTTOM (like WhatsApp) */
+/* Messages: scrollable flex item — DO NOT use justify-content:flex-end here
+   because it prevents min-height:0 from letting the container shrink,
+   which pushes the input form off-screen. Messages naturally flow top→bottom. */
 .cp-messages {
-  justify-content: flex-end !important;
   background: var(--bg) !important;
+  /* justify-content removed intentionally — was the overflow root cause */
 }
 
 /* Subtle dot-grid background on the chat area */
@@ -8524,3 +8526,122 @@ body, html { overflow-x: hidden; max-width: 100vw; }
   color: var(--text-muted);
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE CHAT UX — DEFINITIVE FIX v2
+   Root cause was: cp-messages lacked min-height:0, so it expanded
+   to full content height, pushing input form out of view (clipped).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Word overflow fix (desktop + mobile) ────────────────────────── */
+/* Long unbroken strings (e.g. juhhhh...) must wrap inside bubble */
+.cp-bubble,
+.cp-bubble p {
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+/* ── Mobile-only chat layout ─────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Bound the app-shell to dvh so keyboard resize propagates */
+  .app-shell {
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
+  .app-main {
+    height: 100dvh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .app-header {
+    flex-shrink: 0 !important;
+    /* height already var(--header-h) = 56px */
+  }
+
+  /* ── Chat page: fill remaining viewport above fixed bottom nav ── */
+  .page-content.page-content-chat {
+    flex: 1 1 0% !important;          /* fill remaining flex space in app-main */
+    min-height: 0 !important;         /* allow shrinking — CRITICAL */
+    height: auto !important;          /* let flex determine height, NOT calc() */
+    max-height: calc(100dvh - var(--header-h, 56px) - var(--nav-h-mobile, 60px)) !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* ── Height chain: every wrapper must have min-height:0 ── */
+  .page-content-chat .page-content-wrapper {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;         /* CRITICAL — prevents unbounded growth */
+    height: 0 !important;             /* base = 0, flex-grow handles the rest */
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+
+  .page-content-chat .cp-root {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .page-content-chat .cp-mobile-slider {
+    height: 100% !important;          /* explicit 100% works because cp-root has defined height */
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* ── Each sliding panel is a bounded flex column ── */
+  .cp-mobile-slider .cp-sidebar,
+  .cp-mobile-slider .cp-thread {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* ── Thread header: fixed at top, never shrinks ── */
+  .cp-mobile-slider .cp-thread > .cp-thread-header {
+    flex: 0 0 auto !important;        /* won't grow or shrink */
+    min-height: 0 !important;
+  }
+
+  /* ── Messages: SCROLLABLE, BOUNDED — THE KEY FIX ── */
+  /* flex: 1 1 0% + min-height: 0 forces the browser to shrink this
+     container and scroll instead of expanding to fit all content.   */
+  .cp-mobile-slider .cp-thread > .cp-messages {
+    flex: 1 1 0% !important;          /* grows to fill, but CAN shrink below content size */
+    min-height: 0 !important;         /* overrides default min-height:auto — CRITICAL */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* ── Quick replies: fixed height, never pushed off ── */
+  .cp-mobile-slider .cp-thread > .cp-quick-replies {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+  }
+
+  /* ── Input form: ALWAYS VISIBLE at bottom ── */
+  .cp-mobile-slider .cp-thread > .cp-input-form {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    /* Ensure it never scrolls out of view */
+    position: sticky !important;
+    bottom: 0 !important;
+  }
+}
+
+/* Desktop/tablet: back button always hidden (JSX controls mobile) */
+@media (min-width: 769px) {
+  .cp-back-btn { display: none !important; }
+}

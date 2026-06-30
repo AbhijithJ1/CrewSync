@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import {
   MessageSquare, MessageCircle, Send, ArrowLeft,
@@ -29,9 +29,15 @@ export default function ChatPage() {
   } = useApp();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedId, setSelectedId] = useState(null);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
+
+  // Show back button ONLY when chat was deep-linked from task details,
+  // notification, or any route that sets location.state.from.
+  // When entering via bottom nav → Messages tab, no back button is shown.
+  const showBackButton = !!(location.state?.from);
 
   // On mount only: if a contact was pre-selected (from notification / task details), open it.
   useEffect(() => {
@@ -250,14 +256,16 @@ export default function ChatPage() {
         <>
           {/* Header */}
           <div className="cp-thread-header">
-            <button
-              className="cp-back-btn"
-              onClick={() => setSelectedId(null)}
-              aria-label="Back to contacts"
-            >
-              <ArrowLeft size={16} />
-              <span>Back</span>
-            </button>
+            {showBackButton && (
+              <button
+                className="cp-back-btn"
+                onClick={() => setSelectedId(null)}
+                aria-label="Back to contacts"
+              >
+                <ArrowLeft size={16} />
+                <span>Back</span>
+              </button>
+            )}
             <div className="cp-thread-avatar">{initials(selectedContact?.name)}</div>
             <div className="cp-thread-info">
               <span className="cp-thread-name">{selectedContact?.name || 'Unknown'}</span>
@@ -269,8 +277,8 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* Messages — justify-content flex-end pushes messages to bottom */}
-          <div className="cp-messages" style={{ justifyContent: thread.length > 0 ? 'flex-end' : 'center' }}>
+          {/* Messages */}
+          <div className="cp-messages">
             {thread.length === 0 ? (
               <div className="cp-no-msgs">
                 <div style={{
@@ -286,6 +294,8 @@ export default function ChatPage() {
               </div>
             ) : (
               <>
+                {/* Spacer pushes messages to the bottom when there are few messages, without causing scroll cutoff bugs */}
+                <div style={{ flex: '1 1 auto', minHeight: 0 }} />
                 <div className="cp-thread-start-hint">
                   Today
                 </div>

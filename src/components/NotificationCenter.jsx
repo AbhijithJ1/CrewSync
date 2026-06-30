@@ -66,7 +66,7 @@ export default function NotificationCenter({ isOpen, onClose }) {
     if (notif.type === 'message') {
       if (notif.volunteerId) {
         setActiveDirectChat(notif.volunteerId);
-        navigate('/messages');
+        navigate('/messages', { state: { from: 'notification' } });
       }
     } else if (notif.isApproval) {
       navigate('/approvals');

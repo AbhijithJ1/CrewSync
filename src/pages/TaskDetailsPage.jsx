@@ -289,7 +289,7 @@ export default function TaskDetailsPage() {
                       {isOrganizerView && (
                         <button
                           className="crew-checkin-msg-btn"
-                          onClick={() => { setActiveDirectChat(v.id); navigate('/messages'); }}
+                          onClick={() => { setActiveDirectChat(v.id); navigate('/messages', { state: { from: 'task-details' } }); }}
                           title={`Message ${v.name}`}
                         >
                           <MessageCircle size={12} />
@@ -366,7 +366,7 @@ export default function TaskDetailsPage() {
                 } else {
                   setActiveDirectChat('org-1');
                 }
-                navigate('/messages');
+                navigate('/messages', { state: { from: 'task-details' } });
               }}
             >
               <MessageSquare size={14} />
