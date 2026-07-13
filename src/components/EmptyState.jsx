@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
+import { Inbox, Zap, CheckCircle, Search, MessageSquare, BarChart2, Bell, Rocket } from 'lucide-react';
 
 export function EmptyState({
-  icon = '📭',
+  Icon = Inbox,
   title = 'No items yet',
   description = 'There\'s nothing to display here.',
   actionLabel = null,
@@ -23,7 +24,7 @@ export function EmptyState({
 
   return (
     <div className={`empty-state-container ${isCompact ? 'compact' : ''}`}>
-      <div className="empty-state-icon">{icon}</div>
+      <div className="empty-state-icon"><Icon size={28} strokeWidth={1.5} /></div>
       <h3 className="empty-state-title">{title}</h3>
       <p className="empty-state-desc">{description}</p>
       {actionLabel && (
@@ -42,7 +43,7 @@ export function EmptyState({
 export function EmptyDeployments() {
   return (
     <EmptyState
-      icon="🚀"
+      Icon={Rocket}
       title="No Active Deployments"
       description="Tasks you dispatch will appear here. Create your first crew dispatch to get started."
       actionLabel="Create Task"
@@ -54,7 +55,7 @@ export function EmptyDeployments() {
 export function EmptyCompletedLogs() {
   return (
     <EmptyState
-      icon="✓"
+      Icon={CheckCircle}
       title="No Completed Tasks Yet"
       description="Completed tasks will appear in your history. Accept tasks to start building your record."
     />
@@ -64,7 +65,7 @@ export function EmptyCompletedLogs() {
 export function EmptyApprovals() {
   return (
     <EmptyState
-      icon="🔍"
+      Icon={Search}
       title="No Pending Approvals"
       description="All applications have been reviewed. Check back later for new volunteer submissions."
       variant="compact"
@@ -75,7 +76,7 @@ export function EmptyApprovals() {
 export function EmptyChat() {
   return (
     <EmptyState
-      icon="💬"
+      Icon={MessageSquare}
       title="No Messages Yet"
       description="Start coordinating by sending a message to your crew."
       variant="compact"
@@ -86,7 +87,7 @@ export function EmptyChat() {
 export function EmptyLeaderboard() {
   return (
     <EmptyState
-      icon="🏆"
+      Icon={BarChart2}
       title="Leaderboard Coming Soon"
       description="Rankings will update as volunteers complete tasks and earn XP."
       variant="compact"
@@ -97,7 +98,7 @@ export function EmptyLeaderboard() {
 export function EmptyNotifications() {
   return (
     <EmptyState
-      icon="🔔"
+      Icon={Bell}
       title="All Caught Up"
       description="You have no new notifications. Great job staying on top of things!"
       variant="compact"
@@ -109,7 +110,7 @@ export function EmptyActiveTasks() {
   const navigate = useNavigate();
   return (
     <EmptyState
-      icon="⚡"
+      Icon={Zap}
       title="No Active Tasks"
       description="You're not currently assigned to any tasks. Check the feed to find volunteer opportunities."
       actionLabel="Browse Tasks"

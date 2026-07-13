@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { User, Mail, Lock, Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Lock, Loader2, ArrowRight, CheckCircle2, Zap } from 'lucide-react';
 
 // Google G Logo SVG
 const GoogleIcon = () => (
@@ -101,7 +101,7 @@ export default function SignupPage() {
       <div className="auth-card signup-card afu">
         {/* Header */}
         <div className="auth-card-header">
-          <div className="auth-brand-logo">⚡</div>
+          <div className="auth-brand-logo"><Zap size={18} /></div>
           <h2>Join CrewSync</h2>
           <p>Register as event staff or coordinator</p>
         </div>

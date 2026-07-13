@@ -1,0 +1,46 @@
+.bf-frame {
+  background: var(--c-900);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.bf-frame:hover { transform: translateY(-4px); box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+.bf-accent { box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 32px 80px rgba(0,0,0,0.6); }
+
+.bf-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  background: var(--c-850, #111);
+  border-bottom: 1px solid var(--border);
+}
+.bf-dots { display: flex; gap: 6px; }
+.bf-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c-700);
+}
+.bf-url {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--c-500);
+  background: var(--c-950);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 10px;
+  text-align: center;
+}
+
+.bf-body { line-height: 0; background: var(--c-950); }
+.bf-body img { width: 100%; height: auto; display: block; }
+
+.bf-placeholder {
+  aspect-ratio: 16 / 10;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-600);
+  font-size: 12.5px;
+  font-family: 'JetBrains Mono', monospace;
+  background:
+    repeating-linear-gradient(45deg, var(--c-900), var(--c-900) 10px, var(--c-850, #111) 10px, var(--c-850, #111) 20px);
+}

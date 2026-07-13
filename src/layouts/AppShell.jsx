@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useState, useEffect } from 'react';
-import { LayoutGrid, PlusCircle, Users, User, Bell, Sun, Moon, Briefcase, LogOut, CheckSquare, MessageSquare, Calendar } from 'lucide-react';
+import { LayoutGrid, PlusCircle, Users, User, Bell, Sun, Moon, Briefcase, LogOut, CheckSquare, MessageSquare, Calendar, Zap, Trophy, Star } from 'lucide-react';
 import NotificationCenter from '../components/NotificationCenter';
 import DirectChatDrawer from '../components/DirectChatDrawer';
 
@@ -74,17 +74,17 @@ export default function AppShell({ children }) {
 
   // Dynamic Page Header Info
   const getHeaderTitle = () => {
-    if (currentPath === '/dashboard') return { title: 'Dashboard', sub: 'Grid Control' };
-    if (currentPath === '/create-event') return { title: 'Create Event', sub: 'Event Setup' };
-    if (currentPath === '/create-task') return { title: 'Create Task', sub: 'Operational Dispatch' };
-    if (currentPath === '/approvals') return { title: 'Approvals', sub: 'Crew Credentials' };
-    if (currentPath === '/volunteers') return { title: 'Crew Network', sub: 'Active Volunteers' };
-    if (currentPath === '/tasks') return { title: 'My Work', sub: 'Active Assignments' };
-    if (currentPath === '/profile') return { title: 'Profile', sub: 'Volunteer Progression' };
-    if (currentPath === '/messages') return { title: 'Messages', sub: 'Direct Communication' };
-    if (currentPath.startsWith('/task/')) return { title: 'Task Details', sub: 'Coordination Portal' };
-    if (currentPath.startsWith('/event/')) return { title: 'Event Details', sub: 'Event Overview' };
-    return { title: 'CrewSync', sub: 'Event Operating System' };
+    if (currentPath === '/dashboard') return { title: 'Dashboard', sub: 'Overview' };
+    if (currentPath === '/create-event') return { title: 'Create Event', sub: 'New Event' };
+    if (currentPath === '/create-task') return { title: 'Create Task', sub: 'New Task' };
+    if (currentPath === '/approvals') return { title: 'Approvals', sub: 'Pending Review' };
+    if (currentPath === '/volunteers') return { title: 'Crew Network', sub: 'All Volunteers' };
+    if (currentPath === '/tasks') return { title: 'My Tasks', sub: 'Assigned Work' };
+    if (currentPath === '/profile') return { title: 'Profile', sub: 'Account' };
+    if (currentPath === '/messages') return { title: 'Messages', sub: 'Direct Messages' };
+    if (currentPath.startsWith('/task/')) return { title: 'Task Details', sub: 'Task' };
+    if (currentPath.startsWith('/event/')) return { title: 'Event Details', sub: 'Event' };
+    return { title: 'CrewSync', sub: '' };
   };
 
   const { title: headerTitle, sub: headerSub } = getHeaderTitle();
@@ -94,12 +94,12 @@ export default function AppShell({ children }) {
       {/* Desktop/Tablet Sidebar */}
       <aside className="app-sidebar">
         <div className="sidebar-brand">
-          <div className="sidebar-brand-icon">⚡</div>
+          <div className="sidebar-brand-icon"><Zap size={14} /></div>
           <span className="sidebar-brand-name">CrewSync</span>
         </div>
 
         <nav className="sidebar-nav">
-          <div className="sidebar-section-label">OPERATIONS</div>
+          <div className="sidebar-section-label">Navigation</div>
           {links.map(link => {
             const Icon = link.icon;
             const isActive = currentPath === link.path;
@@ -232,23 +232,23 @@ export default function AppShell({ children }) {
           <div className="celebration-card asc" onClick={e => e.stopPropagation()}>
             {celebration.type === 'level_up' ? (
               <>
-                <div className="celebration-badge level-up-badge">⭐</div>
+                <div className="celebration-badge level-up-badge"><Star size={28} /></div>
                 <h2>Level Up!</h2>
                 <p>Congratulations! You have reached</p>
                 <div className="celebration-value">Level {celebration.value}</div>
-                <p className="celebration-sub">Keep up the great work on the event grid!</p>
+                <p className="celebration-sub">Keep completing tasks to advance further.</p>
               </>
             ) : (
               <>
-                <div className="celebration-badge achievement-badge">🏆</div>
-                <h2>Badge Unlocked!</h2>
+                <div className="celebration-badge achievement-badge"><Trophy size={28} /></div>
+                <h2>Badge Unlocked</h2>
                 <p>You have earned the achievement</p>
                 <div className="celebration-value">{celebration.value}</div>
-                <p className="celebration-sub">This badge has been added to your profile cabinet!</p>
+                <p className="celebration-sub">This badge has been added to your profile.</p>
               </>
             )}
             <button className="btn btn-primary" onClick={clearCelebration} style={{ width: '100%', marginTop: '12px' }}>
-              Awesome!
+              Continue
             </button>
           </div>
         </div>

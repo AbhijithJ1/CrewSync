@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { ShieldAlert, Users, FolderKanban, ArrowRight } from 'lucide-react';
+import { ShieldAlert, Users, FolderKanban, ArrowRight, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function RoleSelectionPage() {
@@ -10,7 +10,6 @@ export default function RoleSelectionPage() {
   const selectRole = (targetRole) => {
     if (targetRole === 'organizer' && user.role !== 'organizer') {
       toast.error("Access Denied. Organizer credentials required for this panel.", {
-        icon: '🔒',
         style: {
           borderLeft: '3px solid var(--priority-critical-border)'
         }
@@ -26,7 +25,7 @@ export default function RoleSelectionPage() {
 
       <div className="role-card-shell afu">
         <div className="role-shell-header">
-          <div className="role-logo-badge">⚡</div>
+          <div className="role-logo-badge"><Zap size={16} /></div>
           <h2>Select Work Portal</h2>
           <p>Logged in as <strong>{user.name}</strong> ({user.email})</p>
         </div>

@@ -92,7 +92,7 @@ export default function ProfilePage() {
               <span className="profile-email-text">{user.email}</span>
               <div className="profile-role-pill-row-mono">
                 <span className="profile-role-pill-mono">
-                  {user.role === 'organizer' ? '🛡️ COORDINATOR' : '⚡ VOLUNTEER'}
+                  {user.role === 'organizer' ? 'COORDINATOR' : 'VOLUNTEER'}
                 </span>
                 {user.approvalStatus === 'approved' && (
                   <span className="profile-approved-badge">✓ APPROVED</span>
@@ -268,7 +268,7 @@ export default function ProfilePage() {
                   className="btn btn-secondary"
                   style={{ width: '100%', justifyContent: 'space-between' }}
                 >
-                  <span>⚡ Broadcast Crew Dispatch</span>
+                  <span>Broadcast Crew Dispatch</span>
                 </button>
               </div>
             </div>
