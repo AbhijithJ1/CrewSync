@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { ShieldAlert, Users, FolderKanban, ArrowRight, Zap } from 'lucide-react';
+import { ShieldAlert, Users, FolderKanban, ArrowRight } from 'lucide-react';
+import CrewSyncLogo from '../components/Logo';
 import toast from 'react-hot-toast';
 
 export default function RoleSelectionPage() {
@@ -25,7 +26,7 @@ export default function RoleSelectionPage() {
 
       <div className="role-card-shell afu">
         <div className="role-shell-header">
-          <div className="role-logo-badge"><Zap size={16} /></div>
+          <div className="role-logo-badge"><CrewSyncLogo size={18} /></div>
           <h2>Select Work Portal</h2>
           <p>Logged in as <strong>{user.name}</strong> ({user.email})</p>
         </div>

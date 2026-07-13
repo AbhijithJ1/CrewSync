@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { ShieldCheck, Mail, Lock, Loader2, ArrowRight, Zap } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import CrewSyncLogo from '../components/Logo';
 
 // Google G Logo SVG
 const GoogleIcon = () => (
@@ -79,7 +80,7 @@ export default function LoginPage() {
       <div className="auth-card afu">
         {/* Card Header */}
         <div className="auth-card-header">
-          <div className="auth-brand-logo"><Zap size={18} /></div>
+          <div className="auth-brand-logo"><CrewSyncLogo size={20} /></div>
           <h2>Welcome back</h2>
           <p>Sign in to your CrewSync account</p>
         </div>

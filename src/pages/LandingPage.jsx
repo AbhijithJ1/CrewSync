@@ -6,6 +6,7 @@ import {
   ShieldCheck, ListChecks, CheckCircle2, KeyRound
 } from 'lucide-react';
 import BrowserFrame from '../components/BrowserFrame';
+import CrewSyncLogo from '../components/Logo';
 import './landing.css';
 
 const fadeUpContainer = {
@@ -26,16 +27,7 @@ const fadeUpItem = {
 
 const fadeUp = fadeUpItem;
 
-function CrewSyncLogo({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 46" fill="none" aria-hidden="true">
-      <path
-        d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
+
 
 const TICKER_ITEMS = [
   'Real-time task dispatch', 'Skill-based routing', 'Live slot tracking',
@@ -57,6 +49,12 @@ export default function LandingPage() {
 
   const rawYCopy = useTransform(heroScroll, [0, 1], [0, -30]);
   const copyY = useSpring(rawYCopy, { stiffness: 60, damping: 18 });
+
+  const rawXEventCrew = useTransform(heroScroll, [0, 1], [0, 60]);
+  const eventCrewX = useSpring(rawXEventCrew, { stiffness: 60, damping: 18 });
+
+  const rawXChaos = useTransform(heroScroll, [0, 1], [0, -60]);
+  const chaosX = useSpring(rawXChaos, { stiffness: 60, damping: 18 });
 
   /* Scroll-linked text strip (parallax marquee layer) */
   const stripRef = useRef(null);
@@ -117,7 +115,8 @@ export default function LandingPage() {
         >
           <motion.div className="ld-eyebrow" variants={fadeUpItem}>Event crew coordination</motion.div>
           <motion.h1 className="ld-h1" variants={fadeUpItem}>
-            Run your event crew<br />without the WhatsApp chaos.
+            Run your <motion.span style={{ x: eventCrewX, display: 'inline-block', fontWeight: 800 }}>event crew</motion.span><br />
+            without the <motion.span style={{ x: chaosX, display: 'inline-block', fontWeight: 800 }}>WhatsApp chaos</motion.span>.
           </motion.h1>
           <motion.p className="ld-lead" variants={fadeUpItem}>
             CrewSync replaces buried group chats with a live task board built for
