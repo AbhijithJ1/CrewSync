@@ -24,6 +24,8 @@ const fadeUpItem = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
 };
 
+const fadeUp = fadeUpItem;
+
 function CrewSyncLogo({ size = 22 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 46" fill="none" aria-hidden="true">
