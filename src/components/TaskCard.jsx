@@ -155,6 +155,7 @@ export default function TaskCard({ task, role, delay = 0 }) {
       case 'completed': return 'status-completed';
       case 'expired':   return 'status-expired';
       case 'cancelled': return 'status-cancelled';
+      case 'waiting_review': return 'status-review';
       case 'pending':
       default:          return 'status-pending';
     }
@@ -184,6 +185,11 @@ export default function TaskCard({ task, role, delay = 0 }) {
             <span className={`priority-label-mono priority-${task.priority}`}>
               {getPriorityLabel(task.priority)}
             </span>
+            {task.eventName && (
+              <span className="event-name-chip" onClick={(e) => { e.stopPropagation(); navigate(`/event/${task.eventId}`); }} style={{ cursor: 'pointer' }}>
+                🗓 {task.eventName}
+              </span>
+            )}
           </div>
         </div>
       </div>

@@ -6,22 +6,27 @@ import TaskCard from '../components/TaskCard';
 import CrewResponseTimer from '../components/CrewResponseTimer';
 import {
   Plus, Filter, Lock, CheckCircle2, Trophy,
-  LayoutGrid, Activity, Users, PlusCircle, ExternalLink
+  LayoutGrid, Activity, Users, PlusCircle, ExternalLink, Calendar
 } from 'lucide-react';
 
 
 export default function DashboardPage({ screen = 'dashboard' }) {
   const {
     user,
+    events,
     activeTasks,
     taskHistory,
     volunteers,
     notifications,
     toggleAvailability,
     removeVolunteer,
+    approveTaskCompletion,
+    rejectTaskCompletion,
   } = useApp();
 
   const [removeConfirmId, setRemoveConfirmId] = useState(null);
+  const [rejectNoteId, setRejectNoteId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
   const navigate = useNavigate();
 
   const [showAllTasks, setShowAllTasks] = useState(false);
@@ -135,9 +140,11 @@ export default function DashboardPage({ screen = 'dashboard' }) {
   // ──────────────────────────────────────────────────────────────
   // ORGANIZER DASHBOARD LAYOUT
   // ──────────────────────────────────────────────────────────────
-  const orgPendingTasks  = useMemo(() => activeTasks.filter(t => t.status === 'pending'),   [activeTasks]);
-  const orgActiveTasks   = useMemo(() => activeTasks.filter(t => t.status === 'accepted'),  [activeTasks]);
-  const orgCompletedTasks= useMemo(() => taskHistory.filter(t => t.status === 'completed'), [taskHistory]);
+  const orgPendingTasks    = useMemo(() => activeTasks.filter(t => t.status === 'pending'),          [activeTasks]);
+  const orgActiveTasks     = useMemo(() => activeTasks.filter(t => t.status === 'accepted'),         [activeTasks]);
+  const orgReviewTasks     = useMemo(() => activeTasks.filter(t => t.status === 'waiting_review'),   [activeTasks]);
+  const orgCompletedTasks  = useMemo(() => taskHistory.filter(t => t.status === 'completed'),        [taskHistory]);
+  const activeEvents       = useMemo(() => (events || []).filter(ev => ev.status === 'active'),      [events]);
 
   const pendingApprovals = useMemo(
     () => volunteers.filter(v => v.approvalStatus === 'pending'),
@@ -169,7 +176,7 @@ export default function DashboardPage({ screen = 'dashboard' }) {
           </button>
         </div>
 
-        {/* Analytics Row (4 cards) */}
+        {/* Analytics Row (5 cards) */}
         <div className="stats-row">
           <div className="stat-card">
             <span className="stat-card-label">Pending Slots</span>
@@ -180,6 +187,12 @@ export default function DashboardPage({ screen = 'dashboard' }) {
             <span className="stat-card-label">Active Deployments</span>
             <span className="stat-card-value">{orgActiveTasks.length}</span>
             <span className="stat-card-sub">Tasks currently on-going</span>
+          </div>
+          <div className="stat-card stat-card-review" style={{ position: 'relative' }}>
+            <span className="stat-card-label">Pending Review</span>
+            <span className="stat-card-value">{orgReviewTasks.length}</span>
+            <span className="stat-card-sub">Awaiting your approval</span>
+            {orgReviewTasks.length > 0 && <div className="stat-review-dot pulse" />}
           </div>
           <div className="stat-card">
             <span className="stat-card-label">Resolved Logs</span>
@@ -193,6 +206,57 @@ export default function DashboardPage({ screen = 'dashboard' }) {
             </span>
             <span className="stat-card-sub">Ready to deploy</span>
           </div>
+        </div>
+
+        {/* Active Events Progress Section */}
+        <div className="active-events-grid-dashboard">
+          <div className="section-title-row">
+            <h3>Active Events Progress</h3>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/create-event')} style={{ fontSize: '11px' }}>
+              <Plus size={12} />
+              <span style={{ marginLeft: '4px' }}>New Event</span>
+            </button>
+          </div>
+          {activeEvents.length > 0 ? (
+            <div className="events-cards-scroll">
+              {activeEvents.map(ev => {
+                const eventActive = activeTasks.filter(t => t.eventId === ev.id);
+                const eventHistoric = taskHistory.filter(t => t.eventId === ev.id);
+                const completed = eventHistoric.filter(t => t.status === 'completed').length;
+                const total = eventActive.length + eventHistoric.length;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                return (
+                  <div key={ev.id} className="event-progress-card-mini" onClick={() => navigate(`/event/${ev.id}`)}>
+                    <div className="epc-header">
+                      <h4>{ev.title}</h4>
+                      <span className="epc-pct">{pct}%</span>
+                    </div>
+                    <div className="epc-meta">
+                      {ev.date && <span>📅 {new Date(ev.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                      {ev.venue && <span>📍 {ev.venue}</span>}
+                    </div>
+                    <div className="epc-bar-track">
+                      <div className="epc-bar-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="epc-footer">
+                      <span>{completed}/{total} Tasks Completed</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="active-events-empty-dashboard">
+              <div className="aee-text">
+                <h4>No Active Events</h4>
+                <p>Create an event to organize your tasks under one umbrella.</p>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/create-event')}>
+                Create Event
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Main Board Grid: Kanban Board + Sidebar Panel */}
@@ -214,6 +278,12 @@ export default function DashboardPage({ screen = 'dashboard' }) {
                     onClick={() => navigate(`/task/${t.id}`)}
                   >
                     <div className="kanban-task-title">{t.title}</div>
+                    {t.eventName && (
+                      <div className="kanban-task-event-tag">
+                        <Calendar size={9} />
+                        <span>{t.eventName}</span>
+                      </div>
+                    )}
                     <div className="kanban-task-meta">
                       <span className="kanban-task-slots">Slots: {t.acceptedBy.length}/{t.volunteersNeeded}</span>
                       <span className="kanban-task-timer">{t.requiredSkill}</span>
@@ -244,13 +314,46 @@ export default function DashboardPage({ screen = 'dashboard' }) {
                     onClick={() => navigate(`/task/${t.id}`)}
                   >
                     <div className="kanban-task-title">{t.title}</div>
+                    {t.eventName && (
+                      <div className="kanban-task-event-tag">
+                        <Calendar size={9} />
+                        <span>{t.eventName}</span>
+                      </div>
+                    )}
                     <div className="kanban-task-meta">
                       <span className="kanban-task-slots">Crew: {t.acceptedBy.length}/{t.volunteersNeeded}</span>
                       <span className="kanban-task-timer">Active</span>
                     </div>
                   </div>
                 ))}
-                {orgActiveTasks.length === 0 && (
+                {/* Waiting Review sub-section */}
+                {orgReviewTasks.map(t => (
+                  <div
+                    key={t.id}
+                    className="kanban-task-card kanban-review-card"
+                    onClick={() => navigate(`/task/${t.id}`)}
+                  >
+                    <div className="kanban-review-badge">⏳ Awaiting Review</div>
+                    <div className="kanban-task-title">{t.title}</div>
+                    <div className="kanban-task-meta">
+                      <button
+                        className="btn btn-primary btn-sm"
+                        style={{ fontSize: '9px', padding: '2px 8px' }}
+                        onClick={e => { e.stopPropagation(); approveTaskCompletion(t.id); toast.success(`Task approved!`); }}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ fontSize: '9px', padding: '2px 8px' }}
+                        onClick={e => { e.stopPropagation(); rejectTaskCompletion(t.id, ''); toast.error(`Task returned.`); }}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {orgActiveTasks.length === 0 && orgReviewTasks.length === 0 && (
                   <div className="empty-state">
                     <CheckCircle2 size={16} />
                     <p style={{ fontSize: '11px' }}>No active duties</p>
@@ -290,10 +393,77 @@ export default function DashboardPage({ screen = 'dashboard' }) {
             </div>
           </div>
 
-        {/* Right Column: Panel Sidebar (Approvals, Leaderboard Mini, System Logs) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Pending Approvals Alert Bar */}
-          {pendingApprovals.length > 0 && (
+          {/* Right Column: Panel Sidebar */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+            {/* Completion Requests Alert */}
+            {orgReviewTasks.length > 0 && (
+              <div className="completion-requests-panel dashboard-crp">
+                <div className="crp-header">
+                  <div className="crp-badge-dot pulse" />
+                  <h3>Completion Requests</h3>
+                  <span className="crp-count-pill">{orgReviewTasks.length}</span>
+                </div>
+                <div className="crp-list">
+                  {orgReviewTasks.map(task => {
+                    const requester = volunteers.find(v => v.id === task.requestedBy);
+                    return (
+                      <div key={task.id} className="crp-item">
+                        <div className="crp-item-content">
+                          <div className="crp-item-title">{task.title}</div>
+                          {requester && (
+                            <div className="crp-item-meta">
+                              <span className="crp-item-requester">by <strong>{requester.name}</strong></span>
+                            </div>
+                          )}
+                          {task.completionNote && (
+                            <div className="crp-item-note">&ldquo;{task.completionNote}&rdquo;</div>
+                          )}
+                        </div>
+                        {rejectNoteId === task.id ? (
+                          <div className="crp-reject-form">
+                            <input
+                              className="crp-reject-input"
+                              placeholder="Reason (optional)"
+                              value={rejectReason}
+                              onChange={e => setRejectReason(e.target.value)}
+                            />
+                            <div className="crp-reject-actions">
+                              <button className="btn btn-ghost btn-sm" onClick={() => { setRejectNoteId(null); setRejectReason(''); }}>Cancel</button>
+                              <button className="btn btn-danger btn-sm" onClick={() => { rejectTaskCompletion(task.id, rejectReason); toast.error('Task returned.'); setRejectNoteId(null); setRejectReason(''); }}>Reject</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="crp-item-actions">
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => navigate(`/task/${task.id}`)}
+                            >
+                              <ExternalLink size={11} />
+                            </button>
+                            <button
+                              className="btn btn-ghost btn-sm crp-reject-btn"
+                              onClick={() => setRejectNoteId(task.id)}
+                            >
+                              Reject
+                            </button>
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={() => { approveTaskCompletion(task.id); toast.success('Task approved! XP awarded.'); }}
+                            >
+                              <CheckCircle2 size={11} /> Approve
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Pending Approvals Alert Bar */}
+            {pendingApprovals.length > 0 && (
             <div className="approval-alert-strip aex">
               <div className="approval-alert-text">
                 <strong>Signups Queue:</strong> {pendingApprovals.length} requests pending review.
@@ -409,6 +579,50 @@ export default function DashboardPage({ screen = 'dashboard' }) {
             <span className="stat-card-value" style={{ fontSize: '18px', paddingTop: '8px' }}>{user.rankTitle || 'Rookie'}</span>
             <span className="stat-card-sub">Level {user.level || 1}</span>
           </div>
+        </div>
+
+        {/* Active Events Progress Section */}
+        <div className="active-events-grid-dashboard">
+          <div className="section-title-row">
+            <h3>Active Events Progress</h3>
+          </div>
+          {activeEvents.length > 0 ? (
+            <div className="events-cards-scroll">
+              {activeEvents.map(ev => {
+                const eventActive = activeTasks.filter(t => t.eventId === ev.id);
+                const eventHistoric = taskHistory.filter(t => t.eventId === ev.id);
+                const completed = eventHistoric.filter(t => t.status === 'completed').length;
+                const total = eventActive.length + eventHistoric.length;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                return (
+                  <div key={ev.id} className="event-progress-card-mini" onClick={() => navigate(`/event/${ev.id}`)}>
+                    <div className="epc-header">
+                      <h4>{ev.title}</h4>
+                      <span className="epc-pct">{pct}%</span>
+                    </div>
+                    <div className="epc-meta">
+                      {ev.date && <span>📅 {new Date(ev.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                      {ev.venue && <span>📍 {ev.venue}</span>}
+                    </div>
+                    <div className="epc-bar-track">
+                      <div className="epc-bar-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="epc-footer">
+                      <span>{completed}/{total} Tasks Completed</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="active-events-empty-dashboard">
+              <div className="aee-text">
+                <h4>No Active Events</h4>
+                <p>Ongoing events will appear here once launched by the organizer.</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* View Mode Switcher */}

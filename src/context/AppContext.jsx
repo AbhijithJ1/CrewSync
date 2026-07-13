@@ -5,7 +5,7 @@ import { calculateLevelInfo, XP_REWARDS, ACHIEVEMENTS } from '../data/xpConfig';
 // ─────────────────────────────────────────────────────────────
 // VERSION MIGRATION
 // ─────────────────────────────────────────────────────────────
-const CURRENT_VERSION = 'v2.1';
+const CURRENT_VERSION = 'v3.0';
 const checkAndMigrateVersion = () => {
   const savedVersion = localStorage.getItem('crewsync-version');
   if (savedVersion !== CURRENT_VERSION) {
@@ -19,7 +19,8 @@ const checkAndMigrateVersion = () => {
       'crewsync-directMessages',
       'crewsync-version',
       'crewsync-locations',
-      'crewsync-taskTypes'
+      'crewsync-taskTypes',
+      'crewsync-events'
     ];
     keysToRemove.forEach(k => localStorage.removeItem(k));
     localStorage.setItem('crewsync-version', CURRENT_VERSION);
@@ -96,6 +97,7 @@ if (loadedUser) {
 
 const initialState = {
   user: initialUser,
+  events: loadPersistedData('events', []),
   activeTasks: loadPersistedData('activeTasks', INITIAL_ACTIVE_TASKS),
   taskHistory: loadPersistedData('taskHistory', INITIAL_TASK_HISTORY),
   volunteers: initialVolunteers,
@@ -910,6 +912,230 @@ function appReducer(state, action) {
       return { ...state, activeDirectChatVolunteerId: action.payload };
     }
 
+    // ── Events ───────────────────────────────────────────────────────────
+    case 'CREATE_EVENT': {
+      const newEvent = {
+        id: `event-${Date.now()}`,
+        title: action.payload.title || 'Untitled Event',
+        description: action.payload.description || '',
+        date: action.payload.date || new Date().toISOString().slice(0, 10),
+        venue: action.payload.venue || '',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        createdBy: action.payload.createdBy || 'org-1',
+      };
+      return {
+        ...state,
+        events: [newEvent, ...state.events],
+        notifications: [
+          {
+            id: `notif-${Date.now()}`,
+            message: `New event created: "${newEvent.title}"`,
+            type: 'success',
+            timestamp: Date.now(),
+            read: false,
+          },
+          ...state.notifications,
+        ],
+      };
+    }
+
+    case 'UPDATE_EVENT': {
+      const { eventId, updates } = action.payload;
+      return {
+        ...state,
+        events: state.events.map(ev =>
+          ev.id === eventId ? { ...ev, ...updates } : ev
+        ),
+      };
+    }
+
+    case 'COMPLETE_EVENT': {
+      const { eventId } = action.payload;
+      return {
+        ...state,
+        events: state.events.map(ev =>
+          ev.id === eventId
+            ? { ...ev, status: 'completed', completedAt: new Date().toISOString() }
+            : ev
+        ),
+        notifications: [
+          {
+            id: `notif-${Date.now()}`,
+            message: `Event marked as completed.`,
+            type: 'success',
+            timestamp: Date.now(),
+            read: false,
+          },
+          ...state.notifications,
+        ],
+      };
+    }
+
+    case 'DELETE_EVENT': {
+      const { eventId } = action.payload;
+      return {
+        ...state,
+        events: state.events.filter(ev => ev.id !== eventId),
+      };
+    }
+
+    // ── Task Completion Requests ──────────────────────────────────────────
+    case 'REQUEST_TASK_COMPLETION': {
+      const { taskId, volunteerId, completionNote } = action.payload;
+      const volunteerName = state.volunteers.find(v => v.id === volunteerId)?.name || 'Crew member';
+      const task = state.activeTasks.find(t => t.id === taskId);
+      if (!task) return state;
+
+      return {
+        ...state,
+        activeTasks: state.activeTasks.map(t =>
+          t.id === taskId
+            ? { ...t, status: 'waiting_review', completionNote, requestedBy: volunteerId, requestedAt: new Date().toISOString() }
+            : t
+        ),
+        notifications: [
+          {
+            id: `notif-${Date.now()}`,
+            taskId,
+            message: `${volunteerName} requested completion approval for "${task.title}"`,
+            type: 'info',
+            timestamp: Date.now(),
+            read: false,
+            targetRole: 'organizer',
+          },
+          ...state.notifications,
+        ],
+      };
+    }
+
+    case 'APPROVE_TASK_COMPLETION': {
+      const { taskId } = action.payload;
+      // Reuse the existing COMPLETE_TASK logic by delegating
+      // We inline it here to avoid code duplication issues
+      const task = state.activeTasks.find(t => t.id === taskId);
+      if (!task) return state;
+
+      const resolvedTask = {
+        ...task,
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        approvedByOrganizer: true,
+      };
+
+      const assignedIds = task.acceptedBy || [];
+      let celebrationToTrigger = null;
+
+      const nextVolunteers = state.volunteers.map(v => {
+        if (!assignedIds.includes(v.id)) return v;
+
+        let baseXP = XP_REWARDS.low;
+        if (task.priority === 'critical') baseXP = XP_REWARDS.critical;
+        else if (task.priority === 'high') baseXP = XP_REWARDS.high;
+        else if (task.priority === 'medium') baseXP = XP_REWARDS.medium;
+
+        const isFirstAccepted = assignedIds[0] === v.id;
+        const responderBonus = isFirstAccepted ? XP_REWARDS.firstResponder : 0;
+        const nextStreak = (v.streakCount || 0) + 1;
+        const streakBonus = nextStreak >= 3 ? XP_REWARDS.streak : 0;
+        const xpEarned = baseXP + responderBonus + streakBonus;
+
+        const currentXp = v.xp || 0;
+        const nextXp = currentXp + xpEarned;
+        const currentLevelInfo = calculateLevelInfo(currentXp);
+        const nextLevelInfo = calculateLevelInfo(nextXp);
+
+        const currentAchievements = v.achievements || [];
+        const newAchievements = [...currentAchievements];
+        const unlockedNow = [];
+        const nextTasksCompleted = (v.tasksCompleted || 0) + 1;
+        const nextCriticalTasksCompleted = (v.criticalTasksCompleted || 0) + (task.priority === 'critical' ? 1 : 0);
+        const nextResponseRate = Math.min(100, (v.responseRate || 80) + 4);
+
+        const unlock = id => { if (!newAchievements.includes(id)) { newAchievements.push(id); unlockedNow.push(id); } };
+        if (nextTasksCompleted === 1) unlock('First Task Completed');
+        if (nextTasksCompleted === 5) unlock('5 Tasks Completed');
+        if (nextTasksCompleted === 10) unlock('10 Tasks Completed');
+        if (task.priority === 'critical') unlock('First Critical Task');
+        if (isFirstAccepted) unlock('Fastest Responder');
+        if (nextStreak === 7) unlock('7-Day Active Streak');
+        if (nextResponseRate === 100 && nextTasksCompleted >= 3) unlock('100% Response Rate');
+
+        if (state.user && state.user.id === v.id) {
+          if (nextLevelInfo.level > currentLevelInfo.level) {
+            celebrationToTrigger = { type: 'level_up', value: nextLevelInfo.level };
+          } else if (unlockedNow.length > 0) {
+            celebrationToTrigger = { type: 'achievement', value: unlockedNow[0] };
+          }
+        }
+
+        return {
+          ...v,
+          available: true,
+          tasksCompleted: nextTasksCompleted,
+          criticalTasksCompleted: nextCriticalTasksCompleted,
+          xp: nextXp,
+          level: nextLevelInfo.level,
+          rankTitle: nextLevelInfo.rankTitle,
+          streakCount: nextStreak,
+          responseRate: nextResponseRate,
+          achievements: newAchievements,
+        };
+      });
+
+      const isCurrentUserAssigned = state.user && assignedIds.includes(state.user.id);
+      const nextUser = isCurrentUserAssigned
+        ? nextVolunteers.find(v => v.id === state.user.id)
+        : state.user;
+
+      return {
+        ...state,
+        user: nextUser,
+        volunteers: nextVolunteers,
+        users: nextVolunteers,
+        activeTasks: state.activeTasks.filter(t => t.id !== taskId),
+        taskHistory: [resolvedTask, ...state.taskHistory],
+        celebration: celebrationToTrigger || state.celebration,
+        notifications: [
+          {
+            id: `notif-${Date.now()}`,
+            taskId,
+            message: `Task "${task.title}" approved and completed. Crew rewarded!`,
+            type: 'success',
+            timestamp: Date.now(),
+            read: false,
+          },
+          ...state.notifications,
+        ],
+      };
+    }
+
+    case 'REJECT_TASK_COMPLETION': {
+      const { taskId, reason } = action.payload;
+      const task = state.activeTasks.find(t => t.id === taskId);
+      if (!task) return state;
+
+      return {
+        ...state,
+        activeTasks: state.activeTasks.map(t =>
+          t.id === taskId
+            ? { ...t, status: 'accepted', completionNote: '', requestedBy: null, rejectionReason: reason || '' }
+            : t
+        ),
+        notifications: [
+          {
+            id: `notif-${Date.now()}`,
+            taskId,
+            message: `Completion request rejected for "${task.title}". Task remains active.`,
+            type: 'warning',
+            timestamp: Date.now(),
+            read: false,
+          },
+          ...state.notifications,
+        ],
+      };
+    }
+
     // ── Theme ─────────────────────────────────────────────────────────────
     case 'TOGGLE_THEME': {
       const newTheme = state.theme === 'dark' ? 'light' : 'dark';
@@ -1036,6 +1262,7 @@ export function AppProvider({ children }) {
   // Persist all critical state to localStorage
   useEffect(() => {
     localStorage.setItem('crewsync-user', JSON.stringify(state.user));
+    localStorage.setItem('crewsync-events', JSON.stringify(state.events || []));
     localStorage.setItem('crewsync-activeTasks', JSON.stringify(state.activeTasks));
     localStorage.setItem('crewsync-taskHistory', JSON.stringify(state.taskHistory));
     localStorage.setItem('crewsync-volunteers', JSON.stringify(state.volunteers));
@@ -1044,7 +1271,7 @@ export function AppProvider({ children }) {
     localStorage.setItem('crewsync-taskTypes', JSON.stringify(state.taskTypes));
     localStorage.setItem('crewsync-directMessages', JSON.stringify(state.directMessages || []));
     localStorage.setItem('crewsync-version', CURRENT_VERSION);
-  }, [state.user, state.activeTasks, state.taskHistory, state.volunteers, state.notifications, state.locations, state.taskTypes, state.directMessages]);
+  }, [state.user, state.events, state.activeTasks, state.taskHistory, state.volunteers, state.notifications, state.locations, state.taskTypes, state.directMessages]);
 
   // ── Auto-expire tasks when their expiresAt wall-clock time is passed ──
   useEffect(() => {
@@ -1059,7 +1286,7 @@ export function AppProvider({ children }) {
     tickExpiry(); // run once immediately
     const interval = setInterval(tickExpiry, 15000); // then every 15s
     return () => clearInterval(interval);
-  }, [state.activeTasks]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.activeTasks]);
 
   // Keep logged-in user synced with volunteers list (approval, xp, etc.)
 
@@ -1082,6 +1309,68 @@ export function AppProvider({ children }) {
   const login = useCallback(user => dispatch({ type: 'LOGIN', payload: user }), []);
   const logout = useCallback(() => dispatch({ type: 'LOGOUT' }), []);
   const signup = useCallback(userInfo => dispatch({ type: 'SIGNUP', payload: userInfo }), []);
+
+  /**
+   * loginWithGoogle — Abstract interface for Google Authentication.
+   * During local development, this interface uses temporary frontend state
+   * only to support UI rendering and interaction.
+   * The backend developer will replace the underlying implementation
+   * with Firebase services without requiring UI changes.
+   */
+  const loginWithGoogle = useCallback(async () => {
+    // FRONTEND INTERFACE ONLY — backend developer replaces body with Firebase Auth.
+    // Resolves with: { success: boolean, user: object|null, error: string|null }
+    console.warn('[loginWithGoogle] Abstract interface — Firebase integration pending.');
+    return { success: false, user: null, error: 'Google Auth not yet integrated. Use email/password login.' };
+  }, []);
+
+  // ── Event actions ─────────────────────────────────────────────────────
+  const createEvent = useCallback(
+    (eventData) => dispatch({ type: 'CREATE_EVENT', payload: eventData }),
+    []
+  );
+  const updateEvent = useCallback(
+    (eventId, updates) => dispatch({ type: 'UPDATE_EVENT', payload: { eventId, updates } }),
+    []
+  );
+  const completeEvent = useCallback(
+    (eventId) => dispatch({ type: 'COMPLETE_EVENT', payload: { eventId } }),
+    []
+  );
+  const deleteEvent = useCallback(
+    (eventId) => dispatch({ type: 'DELETE_EVENT', payload: { eventId } }),
+    []
+  );
+
+  // ── Completion Request actions ────────────────────────────────────────
+  /**
+   * requestTaskCompletion — Called by a volunteer to submit a completion request.
+   * Updates frontend state required to render: Task Status, Event Progress,
+   * Profile Statistics, XP, Level, Rank, Leaderboard.
+   * The backend will become the authoritative source after Firebase integration.
+   */
+  const requestTaskCompletion = useCallback(
+    (taskId, volunteerId, completionNote) =>
+      dispatch({ type: 'REQUEST_TASK_COMPLETION', payload: { taskId, volunteerId, completionNote } }),
+    []
+  );
+
+  /**
+   * approveTaskCompletion — Called by the organizer to approve a completion request.
+   * Updates the frontend state required to render:
+   * Task Status, Event Progress, Profile Statistics, XP, Level, Rank, Leaderboard.
+   * These updates exist only to support frontend rendering and local testing.
+   * The backend will become the authoritative source after Firebase integration.
+   */
+  const approveTaskCompletion = useCallback(
+    (taskId) => dispatch({ type: 'APPROVE_TASK_COMPLETION', payload: { taskId } }),
+    []
+  );
+
+  const rejectTaskCompletion = useCallback(
+    (taskId, reason) => dispatch({ type: 'REJECT_TASK_COMPLETION', payload: { taskId, reason } }),
+    []
+  );
 
   // â”€â”€ Task actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addTask = useCallback(task => dispatch({ type: 'ADD_TASK', payload: task }), []);
@@ -1239,6 +1528,12 @@ export function AppProvider({ children }) {
     logout,
     signup,
     authenticate,
+    loginWithGoogle,
+    // Events
+    createEvent,
+    updateEvent,
+    completeEvent,
+    deleteEvent,
     // Tasks
     addTask,
     cancelTask,
@@ -1247,6 +1542,10 @@ export function AppProvider({ children }) {
     leaveTask,
     completeTask,
     expireTask,
+    // Completion Requests
+    requestTaskCompletion,
+    approveTaskCompletion,
+    rejectTaskCompletion,
     // Interest
     expressInterest,
     approveInterest,

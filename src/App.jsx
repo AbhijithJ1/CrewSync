@@ -15,6 +15,8 @@ import PendingApprovalPage from './pages/PendingApprovalPage';
 import AccessDeniedPage from './pages/AccessDeniedPage';
 import ApprovalManagementPage from './pages/ApprovalManagementPage';
 import ChatPage from './pages/ChatPage';
+import CreateEventPage from './pages/CreateEventPage';
+import EventDetailsPage from './pages/EventDetailsPage';
 
 function AppRoutes() {
   const { user } = useApp();
@@ -59,6 +61,28 @@ function AppRoutes() {
       />
 
       {/* Organizer Pages */}
+      <Route 
+        path="/create-event"
+        element={
+          <ProtectedRoute allowedRole="organizer">
+            <AppShell>
+              <CreateEventPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route 
+        path="/event/:id"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <EventDetailsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
       <Route 
         path="/create-task" 
         element={

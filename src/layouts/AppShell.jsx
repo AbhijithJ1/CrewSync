@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useState, useEffect } from 'react';
-import { LayoutGrid, PlusCircle, Users, User, Bell, Sun, Moon, Briefcase, LogOut, CheckSquare, MessageSquare } from 'lucide-react';
+import { LayoutGrid, PlusCircle, Users, User, Bell, Sun, Moon, Briefcase, LogOut, CheckSquare, MessageSquare, Calendar } from 'lucide-react';
 import NotificationCenter from '../components/NotificationCenter';
 import DirectChatDrawer from '../components/DirectChatDrawer';
 
@@ -15,8 +15,6 @@ export default function AppShell({ children }) {
   const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
 
-  // Clear floating chat when leaving /task/* or navigating around
-  // DCD only shows when user EXPLICITLY opened it via a button
   useEffect(() => {
     // When we arrive at /messages, clear the floating widget ID so DCD doesn't show.
     // ChatPage manages its own selectedId internally.
@@ -39,6 +37,7 @@ export default function AppShell({ children }) {
   // Sidebar links based on role
   const orgLinks = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutGrid },
+    { label: 'Create Event', path: '/create-event', icon: Calendar },
     { label: 'Create Task', path: '/create-task', icon: PlusCircle },
     { label: 'Approvals', path: '/approvals', icon: CheckSquare, badge: pendingApprovalsCount },
     { label: 'Crew Network', path: '/volunteers', icon: Users },
@@ -58,8 +57,8 @@ export default function AppShell({ children }) {
   // Tabs for mobile bottom navigation (fits 3-4 items max)
   const organizerTabs = [
     { label: 'Feed', path: '/dashboard', icon: LayoutGrid },
+    { label: 'Approvals', path: '/approvals', icon: CheckSquare, badge: pendingApprovalsCount },
     { label: 'Create', path: '/create-task', icon: PlusCircle },
-    { label: 'Crew', path: '/volunteers', icon: Users },
     { label: 'Messages', path: '/messages', icon: MessageSquare, badge: notifications.filter(n => !n.read && n.type === 'message').length },
     { label: 'Profile', path: '/profile', icon: User },
   ];
@@ -76,6 +75,7 @@ export default function AppShell({ children }) {
   // Dynamic Page Header Info
   const getHeaderTitle = () => {
     if (currentPath === '/dashboard') return { title: 'Dashboard', sub: 'Grid Control' };
+    if (currentPath === '/create-event') return { title: 'Create Event', sub: 'Event Setup' };
     if (currentPath === '/create-task') return { title: 'Create Task', sub: 'Operational Dispatch' };
     if (currentPath === '/approvals') return { title: 'Approvals', sub: 'Crew Credentials' };
     if (currentPath === '/volunteers') return { title: 'Crew Network', sub: 'Active Volunteers' };
@@ -83,6 +83,7 @@ export default function AppShell({ children }) {
     if (currentPath === '/profile') return { title: 'Profile', sub: 'Volunteer Progression' };
     if (currentPath === '/messages') return { title: 'Messages', sub: 'Direct Communication' };
     if (currentPath.startsWith('/task/')) return { title: 'Task Details', sub: 'Coordination Portal' };
+    if (currentPath.startsWith('/event/')) return { title: 'Event Details', sub: 'Event Overview' };
     return { title: 'CrewSync', sub: 'Event Operating System' };
   };
 
@@ -90,7 +91,6 @@ export default function AppShell({ children }) {
 
   return (
     <div className="app-shell">
-
       {/* Desktop/Tablet Sidebar */}
       <aside className="app-sidebar">
         <div className="sidebar-brand">
@@ -149,7 +149,6 @@ export default function AppShell({ children }) {
       <div className="app-main">
         {/* Top Navbar */}
         <header className="app-header">
-
           <div className="header-breadcrumb">
             <h1>{headerTitle}</h1>
             {headerSub && (

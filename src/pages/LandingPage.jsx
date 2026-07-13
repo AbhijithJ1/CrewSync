@@ -24,11 +24,79 @@ export default function LandingPage() {
     return () => cancelAnimationFrame(animId);
   }, []);
 
+  // Canvas particle background effect
+  useEffect(() => {
+    const canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let particles = [];
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    const particleCount = 45;
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 1.5 + 0.6,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        alpha: Math.random() * 0.5 + 0.1
+      });
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+        ctx.fill();
+      });
+
+      // Connections between particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.04 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
   const orbitNodes = [
     { label: 'Dispatches', icon: '📡', desc: 'Real-time broadcast alerts and instant slot assignments', ring: 1, angle: 45 },
     { label: 'Crew Network', icon: '👥', desc: 'Unified operator dashboard and active volunteer directories', ring: 1, angle: 225 },
     { label: 'Task Routing', icon: '🔀', desc: 'Intelligent skill-based task sorting and queue routing', ring: 2, angle: 120 },
-    { label: 'Live Communication', icon: '💬', desc: 'In-task communication threads and direct quick updates', ring: 2, angle: 300 },
+    { label: 'In-Task Chat', icon: '💬', desc: 'Real-time message threads directly inside active task cards', ring: 2, angle: 300 },
     { label: 'Leaderboard', icon: '🏆', desc: 'Gamified event standings and engagement rankings', ring: 3, angle: 0 },
     { label: 'Progress System', icon: '📊', desc: 'Experience points (XP) metrics and level progressions', ring: 3, angle: 135 },
     { label: 'Approval Control', icon: '🔑', desc: 'Closed access authorization gates and role verification', ring: 3, angle: 270 }
@@ -46,7 +114,8 @@ export default function LandingPage() {
 
   return (
     <div className="landing-root">
-      <header className="landing-nav">
+      <canvas id="particles-canvas" className="particles-bg" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }} />
+      <header className="landing-nav" style={{ position: 'relative', zIndex: 1 }}>
         <div className="landing-nav-brand">
           <div className="landing-nav-icon">⚡</div>
           <span>CrewSync</span>

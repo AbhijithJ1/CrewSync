@@ -49,7 +49,9 @@ export default function ProfilePage() {
   ];
 
   const recentActivities = useMemo(() => {
-    if (user.role !== 'volunteer') return [];
+    if (user.role === 'organizer') {
+      return notifications.filter(n => n.type !== 'message').slice(0, 6);
+    }
     
     return notifications.filter(notif => {
       if (notif.targetVolunteerId === user.id) return true;
@@ -77,7 +79,7 @@ export default function ProfilePage() {
       </div>
 
       {/* 2-Column Responsive Layout */}
-      <div className={`profile-page-layout ${user.role === 'organizer' ? 'organizer-layout' : ''}`}>
+      <div className="profile-page-layout">
         {/* Left Column: Profile Card, XP Progression, Availability and Action Lists */}
         <div className="profile-left-column">
           {/* Identity Card */}
@@ -231,23 +233,65 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
-
-          {/* Bottom Actions list — desktop-only */}
-          <div className="profile-actions-bottom-mono profile-signout-desktop">
-            {/* Sign Out */}
-            <button
-              onClick={handleLogout}
-              className="btn btn-danger"
-              style={{ width: '100%', justifyContent: 'center', gap: 8 }}
-            >
-              <LogOut size={14} />
-              <span>Sign Out</span>
-            </button>
-          </div>
         </div>
 
-        {/* Right Column: Achievements Cabinet, Recent Activity, and Rank Progression (Volunteers only) */}
-        {user.role === 'volunteer' && (
+        {/* Right Column: Achievements Cabinet, Recent Activity, and Rank Progression */}
+        {user.role === 'organizer' ? (
+          <div className="profile-right-column">
+            {/* Quick Actions Panel */}
+            <div className="profile-achievements-panel-mono aex" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h3>Administrative Center</h3>
+              <p className="skills-helper-mono">Orchestrate crew members, dispatches, and operational status.</p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <button
+                  onClick={() => navigate('/approvals')}
+                  className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'space-between' }}
+                >
+                  <span>📝 Review Crew Credentials</span>
+                  {volunteers.filter(v => v.approvalStatus === 'pending').length > 0 && (
+                    <span className="nav-badge" style={{ margin: 0 }}>
+                      {volunteers.filter(v => v.approvalStatus === 'pending').length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => navigate('/create-event')}
+                  className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'space-between' }}
+                >
+                  <span>🗓️ Schedule New Event</span>
+                </button>
+                <button
+                  onClick={() => navigate('/create-task')}
+                  className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'space-between' }}
+                >
+                  <span>⚡ Broadcast Crew Dispatch</span>
+                </button>
+              </div>
+            </div>
+
+            {/* System Operations Log */}
+            <div className="profile-recent-activity-panel afu">
+              <h3>System Operations Log</h3>
+              <div className="recent-activity-list-mono">
+                {recentActivities.map(act => (
+                  <div key={act.id} className="recent-activity-item-mono">
+                    <span className="activity-time-mono">
+                      {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <p className="activity-msg-mono">{act.message}</p>
+                  </div>
+                ))}
+                {recentActivities.length === 0 && (
+                  <p className="empty-activities-mono">No recent activity logged.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
           <div className="profile-right-column">
             {/* Achievements Cabinet */}
             <div className="profile-achievements-panel-mono aex">
@@ -317,14 +361,14 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Mobile-only sticky footer Sign Out */}
-      <div className="profile-mobile-signout-footer">
+      {/* Unified bottom Sign Out row */}
+      <div className="profile-signout-bottom-row" style={{ display: 'flex', justifyContent: 'center', marginTop: '40px', marginBottom: '20px' }}>
         <button
           onClick={handleLogout}
-          className="btn btn-danger"
-          style={{ width: '100%', justifyContent: 'center', gap: 8 }}
+          className="btn btn-danger btn-lg"
+          style={{ width: '100%', maxWidth: '320px', justifyContent: 'center', gap: '8px' }}
         >
-          <LogOut size={14} />
+          <LogOut size={16} />
           <span>Sign Out</span>
         </button>
       </div>

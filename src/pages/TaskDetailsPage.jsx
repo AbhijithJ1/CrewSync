@@ -26,10 +26,15 @@ export default function TaskDetailsPage() {
     expressInterest,
     approveInterest,
     setActiveDirectChat,
+    requestTaskCompletion,
+    approveTaskCompletion,
+    rejectTaskCompletion,
   } = useApp();
 
   const [isLoading, setIsLoading] = useState(false);
   const [note, setNote] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectInput, setShowRejectInput] = useState(false);
   const [focusedInput, setFocusedInput] = useState(false);
 
   const activeTask = activeTasks.find(t => t.id === id);
@@ -71,6 +76,7 @@ export default function TaskDetailsPage() {
   const statusLabels = {
     pending: 'Pending',
     accepted: 'Active',
+    waiting_review: 'Pending Review',
     completed: 'Completed',
     cancelled: 'Cancelled',
     expired: 'Expired',
@@ -111,8 +117,8 @@ export default function TaskDetailsPage() {
     setIsLoading(true);
     await new Promise(r => setTimeout(r, 800));
     setIsLoading(false);
-    completeTask(task.id, user.id, note);
-    toast.success('Resolution logged. You are now available!');
+    requestTaskCompletion(task.id, user.id, note);
+    toast.success('Completion request submitted. Awaiting organizer approval.');
     navigate('/dashboard');
   };
 
@@ -133,6 +139,24 @@ export default function TaskDetailsPage() {
     setIsLoading(false);
     completeTask(task.id, user.id, 'Marked complete by organizer.');
     toast.success('Task marked as complete.');
+    navigate('/dashboard');
+  };
+
+  const handleApproveCompletion = async () => {
+    setIsLoading(true);
+    await new Promise(r => setTimeout(r, 500));
+    setIsLoading(false);
+    approveTaskCompletion(task.id);
+    toast.success('Task completion approved. Crew rewarded.');
+    navigate('/dashboard');
+  };
+
+  const handleRejectCompletion = async () => {
+    setIsLoading(true);
+    await new Promise(r => setTimeout(r, 500));
+    setIsLoading(false);
+    rejectTaskCompletion(task.id, rejectReason);
+    toast.error('Task completion request rejected. Task remains active.');
     navigate('/dashboard');
   };
 
@@ -443,7 +467,20 @@ export default function TaskDetailsPage() {
               {/* Volunteer actions */}
               {!isOrganizerView && (
                 <div className="volunteer-dock-controls">
-                  {!hasAccepted ? (
+                  {task.status === 'waiting_review' ? (
+                    <div className="dock-full-btn review-waiting-btn" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', padding: '16px', borderRadius: 'var(--r-md)', textAlign: 'center' }}>
+                      <Clock size={16} style={{ marginBottom: '8px', color: 'var(--text-muted)', display: 'inline-block' }} />
+                      <h4 style={{ fontSize: '13px', margin: '0 0 4px 0', fontWeight: 600 }}>Request Pending Approval</h4>
+                      <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0 }}>
+                        Your completion report is under review by the organizer:
+                      </p>
+                      {task.completionNote && (
+                        <blockquote style={{ fontSize: '11px', fontStyle: 'italic', margin: '8px 0 0 0', opacity: 0.8, color: 'var(--text-primary)' }}>
+                          &ldquo;{task.completionNote}&rdquo;
+                        </blockquote>
+                      )}
+                    </div>
+                  ) : !hasAccepted ? (
                     isFull ? (
                       hasInterest ? (
                         <button className="dock-full-btn standby-waiting-btn" disabled>
@@ -498,18 +535,57 @@ export default function TaskDetailsPage() {
               {/* Organizer controls */}
               {isOrganizerView && (
                 <div className="organizer-dock-controls">
-                  <button onClick={handleCancel} disabled={isLoading} className="dock-cancel-btn">
-                    {isLoading ? <Loader2 className="spin-loader" size={14} /> : <Ban size={14} />}
-                    <span>Cancel Task</span>
-                  </button>
-                  <button onClick={handleMarkComplete} disabled={isLoading} className="dock-complete-btn">
-                    {isLoading ? <Loader2 className="spin-loader" size={14} /> : <CheckCircle2 size={14} />}
-                    <span>Mark Complete</span>
-                  </button>
-                  <button onClick={handleDelete} className="dock-delete-btn">
-                    <Trash2 size={14} />
-                    <span>Delete Task</span>
-                  </button>
+                  {task.status === 'waiting_review' ? (
+                    <div className="review-action-section" style={{ width: '100%' }}>
+                      <div className="review-header-info" style={{ marginBottom: '12px' }}>
+                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Completion Report under review:</span>
+                        <blockquote style={{ fontSize: '12px', fontStyle: 'italic', margin: '6px 0 12px 0', padding: '10px', background: 'var(--bg-elevated)', borderLeft: '3px solid var(--border-strong)', borderRadius: 'var(--r-sm)' }}>
+                          &ldquo;{task.completionNote || 'No report description provided.'}&rdquo;
+                        </blockquote>
+                      </div>
+                      
+                      {showRejectInput ? (
+                        <div className="reject-reason-input-group" style={{ marginBottom: '12px' }}>
+                          <input
+                            type="text"
+                            placeholder="Enter rejection reason (optional)"
+                            value={rejectReason}
+                            onChange={e => setRejectReason(e.target.value)}
+                            style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', borderRadius: 'var(--r-sm)', color: 'var(--text-primary)', fontSize: '12px', marginBottom: '8px' }}
+                          />
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => { setShowRejectInput(false); setRejectReason(''); }} className="btn btn-ghost btn-sm" style={{ flex: 1 }}>Cancel</button>
+                            <button onClick={handleRejectCompletion} disabled={isLoading} className="btn btn-danger btn-sm" style={{ flex: 1 }}>Confirm Reject</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <button onClick={() => setShowRejectInput(true)} className="btn btn-ghost" style={{ flex: 1, color: 'var(--priority-critical-border)' }}>
+                            Reject Request
+                          </button>
+                          <button onClick={handleApproveCompletion} disabled={isLoading} className="btn btn-primary" style={{ flex: 1 }}>
+                            {isLoading ? <Loader2 className="spin-loader" size={14} /> : <CheckCircle2 size={14} />}
+                            <span>Approve & Close</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <button onClick={handleCancel} disabled={isLoading} className="dock-cancel-btn">
+                        {isLoading ? <Loader2 className="spin-loader" size={14} /> : <Ban size={14} />}
+                        <span>Cancel Task</span>
+                      </button>
+                      <button onClick={handleMarkComplete} disabled={isLoading} className="dock-complete-btn">
+                        {isLoading ? <Loader2 className="spin-loader" size={14} /> : <CheckCircle2 size={14} />}
+                        <span>Mark Complete</span>
+                      </button>
+                      <button onClick={handleDelete} className="dock-delete-btn">
+                        <Trash2 size={14} />
+                        <span>Delete Task</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </section>

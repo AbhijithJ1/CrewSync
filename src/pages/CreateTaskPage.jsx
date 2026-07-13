@@ -15,7 +15,8 @@ export default function CreateTaskPage() {
     addLocation, 
     deleteLocation, 
     addSkill, 
-    deleteSkill 
+    deleteSkill,
+    events,
   } = useApp();
   
   const navigate = useNavigate();
@@ -39,6 +40,8 @@ export default function CreateTaskPage() {
       durationLimit: 300, // 5 minutes
       deadline: "ASAP",
       priority: "medium",
+      eventId: "",
+      eventName: "",
     };
 
     if (cached) {
@@ -144,7 +147,12 @@ export default function CreateTaskPage() {
     await new Promise(r => setTimeout(r, 900));
     setIsSubmitting(false);
 
-    addTask(form);
+    const selectedEvent = events.find(ev => ev.id === form.eventId);
+    addTask({
+      ...form,
+      eventId: selectedEvent ? selectedEvent.id : '',
+      eventName: selectedEvent ? selectedEvent.title : '',
+    });
     toast.success("Task dispatched to live crew queue!");
 
     sessionStorage.removeItem(SESSION_KEY);
@@ -158,6 +166,8 @@ export default function CreateTaskPage() {
       durationLimit: 300,
       deadline: "ASAP",
       priority: "medium",
+      eventId: "",
+      eventName: "",
     });
 
     navigate('/dashboard');
@@ -211,6 +221,39 @@ export default function CreateTaskPage() {
                 maxLength={60}
               />
             </div>
+          </div>
+
+          {/* Event Selector */}
+          <div className="form-input-block">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>🗓</span>
+              <span>Linked Event <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span></span>
+            </label>
+            {events.filter(ev => ev.status === 'active').length > 0 ? (
+              <div className="form-select-element">
+                <select
+                  value={form.eventId}
+                  onChange={e => handleChange('eventId', e.target.value)}
+                  className="form-select"
+                >
+                  <option value="">— No event / standalone task —</option>
+                  {events.filter(ev => ev.status === 'active').map(ev => (
+                    <option key={ev.id} value={ev.id}>{ev.title}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="event-selector-empty">
+                <span>No active events.</span>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => navigate('/create-event')}
+                >
+                  Create Event First
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Description */}
