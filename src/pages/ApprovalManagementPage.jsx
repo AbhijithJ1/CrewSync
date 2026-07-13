@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { ArrowLeft, Check, X, Lock, Users, ShieldCheck, Search, Clock } from 'lucide-react';
+import { Check, X, Lock, Users, ShieldCheck, Search, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ApprovalManagementPage() {
@@ -126,13 +126,10 @@ export default function ApprovalManagementPage() {
     <div className="approvals-page-container afu">
       {/* ── Header ───────────────────────────────────────────── */}
       <div className="approvals-header-mono">
-        <button className="btn-back-mono" onClick={() => navigate(-1)} title="Go Back">
-          <ArrowLeft size={16} />
-        </button>
         <div className="approvals-title-group-mono">
           <h2>Access Approvals</h2>
           <span className="privilege-label-mono">
-            {isAdmin ? '🛡️ ADMIN AUTH' : '🔑 COORDINATOR MODE'}
+            {isAdmin ? 'ADMIN AUTH' : 'COORDINATOR MODE'}
           </span>
         </div>
       </div>

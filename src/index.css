@@ -2222,6 +2222,7 @@ body.notif-lock-scroll {
   width:44px; height:44px; border-radius:var(--r-md);
   background:var(--c-0); display:flex; align-items:center; justify-content:center;
   font-size:22px; margin:0 auto var(--sp-4) auto;
+  color: var(--c-950);
 }
 .auth-card-header h2 { font-family:'Sora',sans-serif; font-size:20px; font-weight:800; letter-spacing:-0.5px; }
 .auth-card-header p  { font-size:13px; color:var(--text-muted); margin-top:4px; }
@@ -2281,7 +2282,7 @@ body.notif-lock-scroll {
 .role-portal-container { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:var(--sp-4); }
 .role-card-shell { width:100%; max-width:440px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-xl); padding:var(--sp-8) var(--sp-6); }
 .role-shell-header { text-align:center; margin-bottom:var(--sp-6); }
-.role-logo-badge { width:40px; height:40px; border-radius:var(--r-md); background:var(--c-0); display:flex; align-items:center; justify-content:center; font-size:20px; margin:0 auto var(--sp-3) auto; }
+.role-logo-badge { width:40px; height:40px; border-radius:var(--r-md); background:var(--c-0); display:flex; align-items:center; justify-content:center; font-size:20px; margin:0 auto var(--sp-3) auto; color: var(--c-950); }
 .role-shell-header h2 { font-family:'Sora',sans-serif; font-size:20px; font-weight:800; }
 .role-shell-header p  { font-size:13px; color:var(--text-muted); margin-top:3px; }
 .role-cards-grid { display:flex; flex-direction:column; gap:var(--sp-3); }

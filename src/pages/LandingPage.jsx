@@ -8,9 +8,20 @@ import {
 import BrowserFrame from '../components/BrowserFrame';
 import './landing.css';
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } }
+const fadeUpContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05
+    }
+  }
+};
+
+const fadeUpItem = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
 };
 
 function CrewSyncLogo({ size = 22 }) {
@@ -41,6 +52,9 @@ export default function LandingPage() {
   });
   const rawY = useTransform(heroScroll, [0, 1], [0, 60]);
   const previewY = useSpring(rawY, { stiffness: 60, damping: 18 });
+
+  const rawYCopy = useTransform(heroScroll, [0, 1], [0, -30]);
+  const copyY = useSpring(rawYCopy, { stiffness: 60, damping: 18 });
 
   /* Scroll-linked text strip (parallax marquee layer) */
   const stripRef = useRef(null);
@@ -92,29 +106,35 @@ export default function LandingPage() {
 
       {/* ── HERO ── */}
       <section className="ld-hero" ref={heroRef}>
-        <motion.div className="ld-hero-copy" initial="hidden" animate="show" variants={fadeUp}>
-          <div className="ld-eyebrow">Event crew coordination</div>
-          <h1 className="ld-h1">
+        <motion.div 
+          className="ld-hero-copy" 
+          style={{ y: copyY }}
+          initial="hidden" 
+          animate="show" 
+          variants={fadeUpContainer}
+        >
+          <motion.div className="ld-eyebrow" variants={fadeUpItem}>Event crew coordination</motion.div>
+          <motion.h1 className="ld-h1" variants={fadeUpItem}>
             Run your event crew<br />without the WhatsApp chaos.
-          </h1>
-          <p className="ld-lead">
+          </motion.h1>
+          <motion.p className="ld-lead" variants={fadeUpItem}>
             CrewSync replaces buried group chats with a live task board built for
             hackathons, college fests, and volunteer-run events — dispatch tasks,
             track who's on what, and keep everyone accountable in real time.
-          </p>
-          <div className="ld-hero-actions">
+          </motion.p>
+          <motion.div className="ld-hero-actions" variants={fadeUpItem}>
             <button className="ld-btn-primary ld-btn-lg" onClick={() => navigate('/signup')}>
               Get started free <ArrowRight size={15} />
             </button>
             <button className="ld-btn-ghost ld-btn-lg" onClick={() => navigate('/login')}>
               Sign in
             </button>
-          </div>
-          <div className="ld-hero-stats">
+          </motion.div>
+          <motion.div className="ld-hero-stats" variants={fadeUpItem}>
             <div><strong>0s</strong><span>Dispatch delay</span></div>
             <div><strong>100%</strong><span>Task accountability</span></div>
             <div><strong>Live</strong><span>Status updates</span></div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Product preview — parallax on scroll */}
