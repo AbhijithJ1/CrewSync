@@ -32,8 +32,20 @@
   text-align: center;
 }
 
-.bf-body { line-height: 0; background: var(--c-950); }
-.bf-body img { width: 100%; height: auto; display: block; }
+.bf-body { 
+  line-height: 0; 
+  background: var(--c-950); 
+  overflow: hidden; 
+}
+.bf-body img { 
+  width: calc(100% + 20px); 
+  margin-left: -10px;
+  margin-right: -10px;
+  margin-top: -10px;
+  margin-bottom: -10px;
+  height: auto; 
+  display: block; 
+}
 
 .bf-placeholder {
   aspect-ratio: 16 / 10;
